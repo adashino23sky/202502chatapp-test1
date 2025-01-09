@@ -1,31 +1,37 @@
 # import libraries
-## langchain (langsmith)
+## langchain
 from langchain_openai import ChatOpenAI
-from typing import Annotated
-from typing_extensions import TypedDict
 ## langgraph
 from langgraph.graph import StateGraph, START, END
 from langgraph.graph.message import add_messages
 from langgraph.checkpoint.memory import MemorySaver
 ## colab
 from google.colab import userdata
+## visualize
+from IPython.display import Image, display
+## class definition
+from typing import Annotated
+from typing_extensions import TypedDict
 
-
-# contrast
-## langsmith
-## langchain
+# contrasts
+## langsmith, not langchain (for logging)
 LANGCHAIN_TRACING_V2=True
 LANGCHAIN_ENDPOINT="https://api.smith.langchain.com"
 LANGCHAIN_API_KEY=userdata.get('langchain_api_key')
 LANGCHAIN_PROJECT="chatapp-20250109"
+## openai
 OPENAI_API_KEY=userdata.get('openai_api_key')
 MODEL_NAME="gpt-4o-mini"
+## setting
+FPATH = "prompt.txt"
+with open(file = FPATH, encoding = "utf-8") as f:
+    PROMPT_TEMPLATE = f.read()
 
 class State(TypedDict):
     # Messages have the type "list". The `add_messages` function
     # in the annotation defines how this state key should be updated
     # (in this case, it appends messages to the list, rather than overwriting them)
-    messages: Annotated[list, add_messages]
+    #  messages: Annotated[Sequence[AIMessage|HumanMessage|ToolMessage], add_messages]
 
 graph_builder = StateGraph(State)
 llm = ChatOpenAI(model=MODEL_NAME,
@@ -46,12 +52,9 @@ def chatbot(state: State):
 # The second argument is the function or object that will be called whenever
 # the node is used.
 graph_builder.add_node("chatbot", chatbot)
-
 graph_builder.add_edge(START, "chatbot")
 graph_builder.add_edge("chatbot", END)
 graph = graph_builder.compile(checkpointer=memory)
-
-from IPython.display import Image, display
 
 try:
     display(Image(graph.get_graph().draw_mermaid_png()))
