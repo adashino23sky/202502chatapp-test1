@@ -1,6 +1,10 @@
 # import libraries
 ## langchain
 from langchain_openai import ChatOpenAI
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+## class definition
+from typing import Annotated
+from typing_extensions import TypedDict
 ## langgraph
 from langgraph.graph import StateGraph, START, END
 from langgraph.graph.message import add_messages
@@ -9,44 +13,43 @@ from langgraph.checkpoint.memory import MemorySaver
 from google.colab import userdata
 ## visualize
 from IPython.display import Image, display
-## class definition
-from typing import Annotated
-from typing_extensions import TypedDict
 
-# contrasts
-## langsmith, not langchain (for logging)
+# constant
+## langsmith（動いていない）
 LANGCHAIN_TRACING_V2=True
 LANGCHAIN_ENDPOINT="https://api.smith.langchain.com"
 LANGCHAIN_API_KEY=userdata.get('langchain_api_key')
-LANGCHAIN_PROJECT="chatapp-20250109"
-## openai
+LANGCHAIN_PROJECT="chatapptest202501"
+## langchain
 OPENAI_API_KEY=userdata.get('openai_api_key')
 MODEL_NAME="gpt-4o-mini"
 ## setting
 FPATH = "prompt.txt"
 with open(file = FPATH, encoding = "utf-8") as f:
-    PROMPT_TEMPLATE = f.read()
+    SYSTEM_PROMPT = f.read()
 
 class State(TypedDict):
     # Messages have the type "list". The `add_messages` function
     # in the annotation defines how this state key should be updated
     # (in this case, it appends messages to the list, rather than overwriting them)
-    #  messages: Annotated[Sequence[AIMessage|HumanMessage|ToolMessage], add_messages]
+    messages: Annotated[list, add_messages]
 
 graph_builder = StateGraph(State)
 llm = ChatOpenAI(model=MODEL_NAME,
                  api_key=OPENAI_API_KEY)
-messages = [
-    SystemMessage(content={PROMPT_TEMPLATE}),
-    HumanMessage(content=) # 
-]
-prompt = ChatPromptTemplate.from_messages(messages)
-chain = prompt | llm
+prompt = ChatPromptTemplate.from_messages(
+    [
+        ("system", SYSTEM_PROMPT),
+        MessagesPlaceholder("history"),
+    ]
+)
+
 memory = MemorySaver()
 config = {"configurable": {"thread_id": "1"}}
+chain = prompt | llm
 
 def chatbot(state: State):
-    return {"messages": [chain.invoke(state["messages"])]}
+    return {"messages": [chain.invoke({"history":state["messages"]})]}
 
 # The first argument is the unique node name
 # The second argument is the function or object that will be called whenever
@@ -63,18 +66,17 @@ except Exception:
     pass
 
 def stream_graph_updates(user_input: str):
-    user_input = "Remember my name?"
-
     # The config is the **second positional argument** to stream() or invoke()!
     events = graph.stream(
         {"messages": [("user", user_input)]}, config, stream_mode="values"
     )
     for event in events:
+        print(event["messages"])
         event["messages"][-1].pretty_print()
 
 while True:
     try:
-        user_input = input("User: ")
+        user_input = input("user: ")
         if user_input.lower() in ["quit", "exit", "q"]:
             print("Goodbye!")
             break
