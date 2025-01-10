@@ -1,107 +1,127 @@
-# library streamlit
+# import libraries
+## streamlit
 import streamlit as st
 from streamlit_chat import message
-
-# library langchain
+##langchain
 from langchain_openai.chat_models import ChatOpenAI
-# from langchain.chains import ConversationChain
-# from langchain.memory import ConversationBufferWindowMemory
-from langchain_community.chat_message_histories import ChatMessageHistory
-from langchain_core.chat_history import BaseChatMessageHistory
 from langchain_core.prompts import (
     ChatPromptTemplate,
     MessagesPlaceholder,
-    SystemMessagePromptTemplate,
-    HumanMessagePromptTemplate
 )
-from langchain_core.runnables.history import RunnableWithMessageHistory
-
-# library time
+## class definition
+from typing import Annotated
+from typing_extensions import TypedDict
+## langgraph
+from langgraph.graph import StateGraph, START, END
+from langgraph.graph.message import add_messages
+from langgraph.checkpoint.memory import MemorySaver
+## visualize
+from IPython.display import Image, display
+## time
 from time import sleep
 import datetime
 import pytz # convert timezone
 global now # get time from user's PC
 now = datetime.datetime.now(pytz.timezone('Asia/Tokyo'))
-
-# library firebase
+## library firebase
 import firebase_admin
 from google.oauth2 import service_account
 from google.cloud import firestore
 import json
-
-# library calculate tokens
+## library calculate tokens
 import tiktoken
 
 # プロンプト
-prompt_list = ["prompt.txt", "preprompt_affirmative_individualizing_nuclear.txt", "preprompt_negative_binding_nuclear.txt"]
+prompt_list = ["prompt.txt"]
 # モデル
-model_list = ["gpt-4-1106-preview", "gpt-4o", "gpt-4o-mini"]
+# model_list = ["gpt-4-1106-preview", "gpt-4o", "gpt-4o-mini"]
 # 待機時間
 sleep_time_list = [5, 5, 5, 5, 5, 5, 5, 5]
 # 表示テキスト
 text_list = ['「原子力発電を廃止すべきか否か」という意見に対して、あなたの意見を入力し、送信ボタンを押してください。', 'あなたの意見を入力し、送信ボタンを押してください。']
 
-# メモリ初期化
-# if not "memory" in st.session_state:
-#     st.session_state.memory = ConversationBufferWindowMemory(k=8, return_messages=True)
+# constant
+## langsmith（動いていない）
+# LANGCHAIN_TRACING_V2=True
+# LANGCHAIN_ENDPOINT="https://api.smith.langchain.com"
+# LANGCHAIN_API_KEY=userdata.get('langchain_api_key')
+# LANGCHAIN_PROJECT="chatapptest202501"
+## langchain
+OPENAI_API_KEY=st.secrets.openai_api_key
+MODEL_NAME="gpt-4o-mini"
+## setting
+FPATH = "prompt.txt" # recommend hidden
+with open(file = FPATH, encoding = "utf-8") as f:
+    SYSTEM_PROMPT = f.read()
+
+class State(TypedDict):
+    # Messages have the type "list". The `add_messages` function
+    # in the annotation defines how this state key should be updated
+    # (in this case, it appends messages to the list, rather than overwriting them)
+    messages: Annotated[list, add_messages]
+
+graph_builder = StateGraph(State)
+llm = ChatOpenAI(model=MODEL_NAME,
+                 api_key=OPENAI_API_KEY)
+prompt = ChatPromptTemplate.from_messages(
+    [
+        ("system", SYSTEM_PROMPT),
+        MessagesPlaceholder("history"),
+    ]
+)
+chain = prompt | llm
+if "user_id" in st.session_state:
+    config = {"configurable": {"thread_id": st.session_state.user_id}}
+st.session_state.memory = MemorySaver()
+
+def stream_graph_updates(user_input: str):
+    # The config is the **second positional argument** to stream() or invoke()!
+    events = graph.stream(
+        {"messages": [("user", user_input)]}, config, stream_mode="values"
+    )
+    for event in events:
+        print(event["messages"])
+        event["messages"][-1].pretty_print()
+
+while True:
+    try:
+        user_input = input("user: ") # いれてね
+        if user_input.lower() in ["quit", "exit", "q"]:
+            print("Goodbye!")
+            break
+        stream_graph_updates(user_input)
+    except:
+        # fallback if input() is not available
+        user_input = "What do you know about LangGraph?"
+        print("User: " + user_input)
+        stream_graph_updates(user_input)
+        break
 
 # ID入力※テスト用フォーム
 def input_id():
-    if not "user_id" in st.session_state:
-        st.session_state.user_id = "hogehoge"
     with st.form("id_form", enter_to_submit=False):
-        # prompt_option = st.selectbox(
-            # "プロンプトファイル選択※テスト用フォーム",
-            # ("{}".format(prompt_list[0]), "{}".format(prompt_list[1])),)
-        model_option = st.selectbox(
-            "モデル選択※テスト用フォーム",
-            ("{}".format(model_list[0]), "{}".format(model_list[1]), "{}".format(model_list[2])),)
         user_id = st.text_input('学籍番号を入力し、送信ボタンを押してください')
         submit_id = st.form_submit_button(
             label="送信",
             type="primary")
     if submit_id:
-        with open(prompt_list[0], 'r', encoding='utf-8') as f:
-            st.session_state.systemprompt = f.read()
-        st.session_state.model = model_option
+        # with open(prompt_list[0], 'r', encoding='utf-8') as f:
+        #     st.session_state.systemprompt = f.read()
+        # st.session_state.model = model_option
         st.session_state.user_id = str(user_id)
         st.session_state.state = 2
         st.rerun()
 
-# プロンプト設定
-if "systemprompt" in st.session_state:
-    template = st.session_state.systemprompt # st.session_state.systemprompt
-    st.session_state.prompt = ChatPromptTemplate.from_messages([
-        SystemMessagePromptTemplate.from_template(template),
-        MessagesPlaceholder(variable_name="history"),
-        HumanMessagePromptTemplate.from_template("{input}")
-    ])
+def chatbot(state: State):
+    return {"messages": [chain.invoke({"history":state["messages"]})]}
 
-# モデル設定
-if "model" in st.session_state:
-    # モデルのインスタンス生成
-    chat = ChatOpenAI(
-        model=st.session_state.model,
-        temperature=0,
-        max_tokens=None,
-        timeout=None,
-        max_retries=0,
-        api_key= st.secrets.openai_api_key
-    )
-    # チェインを設定
-    st.session_state.runnable = st.session_state.prompt | chat
-    st.session_state.store = {}
-    def get_session_history(session_id: str) -> BaseChatMessageHistory:
-        if session_id not in st.session_state.store:
-            st.session_state.store[session_id] = ChatMessageHistory()
-        return st.session_state.store[session_id]
-    st.session_state.with_message_history = RunnableWithMessageHistory(
-        st.session_state.runnable,
-        get_session_history,
-        input_messages_key="input",
-        history_messages_key="history",
-    )
-    # encoding = tiktoken.encoding_for_model(st.session_state.model)
+# The first argument is the unique node name
+# The second argument is the function or object that will be called whenever
+# the node is used.
+graph_builder.add_node("chatbot", chatbot)
+graph_builder.add_edge(START, "chatbot")
+graph_builder.add_edge("chatbot", END)
+graph = graph_builder.compile(checkpointer=st.session_state.memory)
 
 # Firebase 設定の読み込み
 key_dict = json.loads(st.secrets["firebase"]["textkey"])
