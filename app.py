@@ -31,15 +31,6 @@ import json
 ## library calculate tokens
 import tiktoken
 
-# プロンプト
-prompt_list = ["prompt.txt"]
-# モデル
-# model_list = ["gpt-4-1106-preview", "gpt-4o", "gpt-4o-mini"]
-# 待機時間
-sleep_time_list = [5, 5, 5, 5, 5, 5, 5, 5]
-# 表示テキスト
-text_list = ['「原子力発電を廃止すべきか否か」という意見に対して、あなたの意見を入力し、送信ボタンを押してください。', 'あなたの意見を入力し、送信ボタンを押してください。']
-
 # constant
 ## langsmith（動いていない）
 # LANGCHAIN_TRACING_V2=True
@@ -49,10 +40,14 @@ text_list = ['「原子力発電を廃止すべきか否か」という意見に
 ## langchain
 OPENAI_API_KEY=st.secrets.openai_api_key
 MODEL_NAME="gpt-4o-mini"
-## setting
+## chat act config
 FPATH = "prompt.txt" # recommend hidden
 with open(file = FPATH, encoding = "utf-8") as f:
     SYSTEM_PROMPT = f.read()
+SLEEP_TIME_LIST = [5, 5, 5, 5, 5, 5, 5, 5] # 各対話ターンの待機時間
+DISPLAY_TEXT = [
+'「原子力発電を廃止すべきか否か」という意見に対して、あなたの意見を入力し、送信ボタンを押してください。', 
+'あなたの意見を入力し、送信ボタンを押してください。'] # 対話ターンの表示テキスト
 
 class State(TypedDict):
     # Messages have the type "list". The `add_messages` function
@@ -173,7 +168,21 @@ def chat_page():
     if not "talktime" in st.session_state:
         st.session_state.talktime = 0
     if not "log" in st.session_state:
-        st.session_state.log = []
+        st.session_state.log = []]
+    while True:
+    try:
+        user_input = input("user: ") # いれてね
+        if user_input.lower() in ["quit", "exit", "q"]:
+            print("Goodbye!")
+            break
+        stream_graph_updates(user_input)
+    except:
+        # fallback if input() is not available
+        user_input = "What do you know about LangGraph?"
+        print("User: " + user_input)
+        stream_graph_updates(user_input)
+        break
+    stream_graph_updates(user_input)
     # 履歴表示
     chat_placeholder = st.empty()
     with chat_placeholder.container():
@@ -203,18 +212,7 @@ def chat_page():
                     type="primary")
             if submit_msg:
                 st.session_state.user_input = user_input
-                st.session_state.log.append({"role": "user", "content": st.session_state.user_input})
-                # count token
-                # if not "total_input_tokens" in st.session_state:
-                    # st.session_state.total_input_tokens = 0
-                # st.session_state.input_tokens = 0
-                # system_tokens = encoding.encode(template)
-                # st.session_state.input_tokens += len(system_tokens)
-                # st.session_state.total_input_tokens += len(system_tokens)
-                # for msg in st.session_state.log:
-                    # tokens = encoding.encode(msg["content"])
-                    # st.session_state.input_tokens += len(tokens)
-                    # st.session_state.total_input_tokens += len(tokens)
+                st.session_state.log.append({"role": "user", "content": st.session_state.user_input}
                 st.session_state.state = 3
                 st.rerun()
     elif st.session_state.talktime == 5: # 会話終了時
