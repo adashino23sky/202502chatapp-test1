@@ -48,6 +48,7 @@ SLEEP_TIME_LIST = [5, 5, 5, 5, 5, 5, 5, 5] # 各対話ターンの待機時間
 DISPLAY_TEXT = [
 '「原子力発電を廃止すべきか否か」という意見に対して、あなたの意見を入力し、送信ボタンを押してください。', 
 'あなたの意見を入力し、送信ボタンを押してください。'] # 対話ターンの表示テキスト
+URL = "https://www.nagoya-u.ac.jp/"
 
 class State(TypedDict):
     # Messages have the type "list". The `add_messages` function
@@ -78,20 +79,6 @@ def stream_graph_updates(user_input: str):
         print(event["messages"])
         event["messages"][-1].pretty_print()
 
-while True:
-    try:
-        user_input = input("user: ") # いれてね
-        if user_input.lower() in ["quit", "exit", "q"]:
-            print("Goodbye!")
-            break
-        stream_graph_updates(user_input)
-    except:
-        # fallback if input() is not available
-        user_input = "What do you know about LangGraph?"
-        print("User: " + user_input)
-        stream_graph_updates(user_input)
-        break
-
 # ID入力※テスト用フォーム
 def input_id():
     with st.form("id_form", enter_to_submit=False):
@@ -100,9 +87,6 @@ def input_id():
             label="送信",
             type="primary")
     if submit_id:
-        # with open(prompt_list[0], 'r', encoding='utf-8') as f:
-        #     st.session_state.systemprompt = f.read()
-        # st.session_state.model = model_option
         st.session_state.user_id = str(user_id)
         st.session_state.state = 2
         st.rerun()
@@ -216,7 +200,7 @@ def chat_page():
                 st.session_state.state = 3
                 st.rerun()
     elif st.session_state.talktime == 5: # 会話終了時
-        url = "https://nagoyapsychology.qualtrics.com/jfe/form/SV_87jQ6Hj2rjLDdSm"
+
         # print total token counts
         # st.write("total input tokens : {}※テスト用".format(st.session_state.total_input_tokens))
         # st.write("total output tokens : {}※テスト用".format(st.session_state.total_output_tokens))
