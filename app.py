@@ -49,6 +49,7 @@ DISPLAY_TEXT = [
 '「原子力発電を廃止すべきか否か」という意見に対して、あなたの意見を入力し、送信ボタンを押してください。', 
 'あなたの意見を入力し、送信ボタンを押してください。'] # 対話ターンの表示テキスト
 URL = "https://www.nagoya-u.ac.jp/"
+FIREBASE_APIKEY_DICT = json.loads(st.secrets["firebase"]["textkey"])
 
 class State(TypedDict):
     # Messages have the type "list". The `add_messages` function
@@ -103,9 +104,8 @@ graph_builder.add_edge("chatbot", END)
 graph = graph_builder.compile(checkpointer=st.session_state.memory)
 
 # Firebase 設定の読み込み
-key_dict = json.loads(st.secrets["firebase"]["textkey"])
-creds = service_account.Credentials.from_service_account_info(key_dict)
-project_id = key_dict["project_id"]
+creds = service_account.Credentials.from_service_account_info(FIREBASE_APIKEY_DICT)
+project_id = FIREBASE_APIKEY_DICT["project_id"]
 db = firestore.Client(credentials=creds, project=project_id)
 
 # 入力時の動作
@@ -152,7 +152,7 @@ def chat_page():
     if not "talktime" in st.session_state:
         st.session_state.talktime = 0
     if not "log" in st.session_state:
-        st.session_state.log = []]
+        st.session_state.log = []
     while True:
     try:
         user_input = input("user: ") # いれてね
@@ -160,6 +160,7 @@ def chat_page():
             print("Goodbye!")
             break
         stream_graph_updates(user_input)
+        st.session_state.log = strea
     except:
         # fallback if input() is not available
         user_input = "What do you know about LangGraph?"
