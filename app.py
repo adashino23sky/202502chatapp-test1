@@ -45,7 +45,7 @@ FPATH = "prompt.txt" # recommend hidden
 with open(file = FPATH, encoding = "utf-8") as f:
     SYSTEM_PROMPT = f.read()
 SLEEP_TIME_LIST = [5, 5, 5, 5, 5, 5, 5, 5] # 各対話ターンの待機時間
-DISPLAY_TEXT = [
+DISPLAY_TEXT_LIST = [
 '「原子力発電を廃止すべきか否か」という意見に対して、あなたの意見を入力し、送信ボタンを押してください。', 
 'あなたの意見を入力し、送信ボタンを押してください。'] # 対話ターンの表示テキスト
 URL = "https://www.nagoya-u.ac.jp/"
@@ -122,9 +122,19 @@ def click_to_submit():
                 message(msg["content"], is_user=False, avatar_style="micah", key = "ai_{}".format(i))
     with st.spinner("相手からの返信を待っています..."):
         st.session_state.send_time = str(datetime.datetime.now(pytz.timezone('Asia/Tokyo')))
-        st.session_state.response = st.session_state.with_message_history.invoke({"input": st.session_state.user_input},
+        st.session_state.user_input
+            while True:
+                try:
+                    stream_graph_updates(user_input)
+                    st.session_state.log = stream_graph_updates(user_input)
+                    st.session_state.response = st.session_state.with_message_history.invoke({"input": st.session_state.user_input},
                                                             config={"configurable": {"session_id": st.session_state.user_id}},
                                                            )
+                except:
+                    stream_graph_updates(user_input)
+                    break
+                stream_graph_updates(user_input)
+
         st.session_state.response = st.session_state.response.content
         # st.session_state.response = conversation.predict(input=st.session_state.user_input)
         # count token
@@ -155,16 +165,9 @@ def chat_page():
         st.session_state.log = []
     while True:
     try:
-        user_input = input("user: ") # いれてね
-        if user_input.lower() in ["quit", "exit", "q"]:
-            print("Goodbye!")
-            break
         stream_graph_updates(user_input)
-        st.session_state.log = strea
+        st.session_state.log = stream_graph_updates(user_input)
     except:
-        # fallback if input() is not available
-        user_input = "What do you know about LangGraph?"
-        print("User: " + user_input)
         stream_graph_updates(user_input)
         break
     stream_graph_updates(user_input)
@@ -189,9 +192,9 @@ def chat_page():
         with st.container():
             with st.form("chat_form", clear_on_submit=True, enter_to_submit=False):
                 if st.session_state.talktime == 0:
-                    user_input = st.text_area(text_list[0])
+                    user_input = st.text_area(DISPLAY_TEXT_LIST[0])
                 else:
-                    user_input = st.text_area(text_list[1])
+                    user_input = st.text_area(DISPLAY_TEXT_LIST[1])
                 submit_msg = st.form_submit_button(
                     label="送信",
                     type="primary")
