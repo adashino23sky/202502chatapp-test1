@@ -15,8 +15,8 @@ from typing_extensions import TypedDict
 from langgraph.graph import StateGraph, START, END
 from langgraph.graph.message import add_messages
 from langgraph.checkpoint.memory import MemorySaver
-## visualize
-from IPython.display import Image, display
+# ## visualize
+# from IPython.display import Image, display
 ## time
 from time import sleep
 import datetime
