@@ -23,13 +23,13 @@ import datetime
 import pytz # convert timezone
 global now # get time from user's PC
 now = datetime.datetime.now(pytz.timezone('Asia/Tokyo'))
-## library firebase
-import firebase_admin
-from google.oauth2 import service_account
-from google.cloud import firestore
-import json
-## library calculate tokens
-import tiktoken
+# ## library firebase
+# import firebase_admin
+# from google.oauth2 import service_account
+# from google.cloud import firestore
+# import json
+# ## library calculate tokens
+# import tiktoken
 
 # constant
 ## langsmith（動いていない）
