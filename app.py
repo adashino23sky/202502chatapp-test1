@@ -113,7 +113,7 @@ graph = graph_builder.compile(checkpointer=st.session_state.memory)
 # db = firestore.Client(credentials=creds, project=project_id)
 
 # 入力時の動作
-def running():
+def submitted():
     # 待機中にも履歴を表示
     chat_placeholder = st.empty()
     with chat_placeholder.container():
@@ -226,7 +226,7 @@ def main():
     elif st.session_state.state == 2:
         chat_page()
     elif st.session_state.state == 3:
-        click_to_submit()
+        submitted()
 
 if __name__ == "__main__":
     main()
