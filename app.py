@@ -118,6 +118,8 @@ def submitted():
     chat_placeholder = st.empty()
     with chat_placeholder.container():
         for i in range(len(st.session_state.log)-1):
+            print(st.session_state.log)
+            print(i)
             msg = st.session_state.log[i]
             if msg["role"] == "user":
                 message(msg["content"], is_user=True, avatar_style="adventurer", seed="Nala", key = "user_{}".format(i))
@@ -173,10 +175,6 @@ def chat_page():
                 st.session_state.state = 3
                 st.rerun()
     elif st.session_state.talktime == 5: # 会話終了時
-
-        # print total token counts
-        # st.write("total input tokens : {}※テスト用".format(st.session_state.total_input_tokens))
-        # st.write("total output tokens : {}※テスト用".format(st.session_state.total_output_tokens))
         st.markdown(
             f"""
             会話が規定回数に達しました。\n\n
