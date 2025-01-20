@@ -124,7 +124,7 @@ def submitted():
             else:
                 message(msg["content"], is_user=False, avatar_style="micah", key = "ai_{}".format(i))
     with st.spinner("相手からの返信を待っています..."):
-        sleep(sleep_time_list[st.session_state.talktime])
+        sleep(SLEEP_TIME_LIST[st.session_state.talktime])
         st.session_state.return_time = str(datetime.datetime.now(pytz.timezone('Asia/Tokyo')))
         # doc_ref = db.collection(str(st.session_state.user_id)).document(str(st.session_state.talktime))
         # doc_ref.set({
