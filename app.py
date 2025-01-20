@@ -96,17 +96,24 @@ graph_builder.add_edge("chatbot", END)
 graph = graph_builder.compile(checkpointer=st.session_state.memory)
 
 def stream_graph_updates(user_input: str):
-    # The config is the **second positional argument** to stream() or invoke()!
-    events = graph.stream(
-        {"messages": [("user", user_input)]}, config, stream_mode="values"
-    )
-    for event in events:
-        messages = event["messages"]
+    try:
+        events = graph.stream(
+            {"messages": [("user", user_input)]}, config, stream_mode="values"
+        )
+        st.info("イベントストリームを開始しました。")
         msg_list = []
-        for value in range(len(messages)):
-            msg_list.append({"role":messages[value].type,
-                             "content":messages[value].content})
+        for event in events:
+            st.json(event)  # デバッグ: 各イベント内容を表示
+            messages = event["messages"]
+            for value in range(len(messages)):
+                msg_list.append({
+                    "role": messages[value].type,
+                    "content": messages[value].content
+                })
         return msg_list
+    except Exception as e:
+        st.error(f"ストリーム更新中のエラー: {str(e)}")
+        return []
 
 # Firebase 設定の読み込み
 # creds = service_account.Credentials.from_service_account_info(FIREBASE_APIKEY_DICT)
