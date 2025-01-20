@@ -49,7 +49,7 @@ DISPLAY_TEXT_LIST = [
 '「原子力発電を廃止すべきか否か」という意見に対して、あなたの意見を入力し、送信ボタンを押してください。', 
 'あなたの意見を入力し、送信ボタンを押してください。'] # 対話ターンの表示テキスト
 URL = "https://www.nagoya-u.ac.jp/"
-FIREBASE_APIKEY_DICT = json.loads(st.secrets["firebase"]["textkey"])
+# FIREBASE_APIKEY_DICT = json.loads(st.secrets["firebase"]["textkey"])
 
 class State(TypedDict):
     # Messages have the type "list". The `add_messages` function
@@ -108,9 +108,9 @@ graph_builder.add_edge("chatbot", END)
 graph = graph_builder.compile(checkpointer=st.session_state.memory)
 
 # Firebase 設定の読み込み
-creds = service_account.Credentials.from_service_account_info(FIREBASE_APIKEY_DICT)
-project_id = FIREBASE_APIKEY_DICT["project_id"]
-db = firestore.Client(credentials=creds, project=project_id)
+# creds = service_account.Credentials.from_service_account_info(FIREBASE_APIKEY_DICT)
+# project_id = FIREBASE_APIKEY_DICT["project_id"]
+# db = firestore.Client(credentials=creds, project=project_id)
 
 # 入力時の動作
 def running():
@@ -126,13 +126,13 @@ def running():
     with st.spinner("相手からの返信を待っています..."):
         sleep(sleep_time_list[st.session_state.talktime])
         st.session_state.return_time = str(datetime.datetime.now(pytz.timezone('Asia/Tokyo')))
-        doc_ref = db.collection(str(st.session_state.user_id)).document(str(st.session_state.talktime))
-        doc_ref.set({
-            "Human": st.session_state.log[-2],
-            "AI": st.session_state.log[-1],
-            "Human_msg_sended": st.session_state.send_time,
-            "AI_msg_returned": st.session_state.return_time,
-        })
+        # doc_ref = db.collection(str(st.session_state.user_id)).document(str(st.session_state.talktime))
+        # doc_ref.set({
+        #     "Human": st.session_state.log[-2],
+        #     "AI": st.session_state.log[-1],
+        #     "Human_msg_sended": st.session_state.send_time,
+        #     "AI_msg_returned": st.session_state.return_time,
+        # })
         st.session_state.talktime += 1
         st.session_state.state = 2
         st.rerun()
