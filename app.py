@@ -77,8 +77,12 @@ def stream_graph_updates(user_input: str):
         {"messages": [("user", user_input)]}, config, stream_mode="values"
     )
     for event in events:
-        print(event["messages"])
-        event["messages"][-1].pretty_print()
+        messages = event["messages"]
+        msg_list = []
+        for value in range(len(messages)):
+            msg_list.append({"role":messages[value].type,
+                             "content":messages[value].content})
+        return msg_list
 
 # ID入力※テスト用フォーム
 def input_id():
@@ -109,46 +113,23 @@ project_id = FIREBASE_APIKEY_DICT["project_id"]
 db = firestore.Client(credentials=creds, project=project_id)
 
 # 入力時の動作
-def click_to_submit():
-    st.write(st.session_state.log)
+def running():
     # 待機中にも履歴を表示
     chat_placeholder = st.empty()
     with chat_placeholder.container():
-        for i in range(len(st.session_state.log)):
+        for i in range(len(st.session_state.log - 1)):
             msg = st.session_state.log[i]
             if msg["role"] == "user":
                 message(msg["content"], is_user=True, avatar_style="adventurer", seed="Nala", key = "user_{}".format(i))
             else:
                 message(msg["content"], is_user=False, avatar_style="micah", key = "ai_{}".format(i))
     with st.spinner("相手からの返信を待っています..."):
-        st.session_state.send_time = str(datetime.datetime.now(pytz.timezone('Asia/Tokyo')))
-        st.session_state.user_input
-            while True:
-                try:
-                    stream_graph_updates(user_input)
-                    st.session_state.log = stream_graph_updates(user_input)
-                    st.session_state.response = st.session_state.with_message_history.invoke({"input": st.session_state.user_input},
-                                                            config={"configurable": {"session_id": st.session_state.user_id}},
-                                                           )
-                except:
-                    stream_graph_updates(user_input)
-                    break
-                stream_graph_updates(user_input)
-
-        st.session_state.response = st.session_state.response.content
-        # st.session_state.response = conversation.predict(input=st.session_state.user_input)
-        # count token
-        # if not "total_output_tokens" in st.session_state:
-            # st.session_state.total_output_tokens = 0
-        # st.session_state.output_tokens = len(encoding.encode(st.session_state.response))
-        # st.session_state.total_output_tokens += st.session_state.output_tokens
-        st.session_state.log.append({"role": "AI", "content": st.session_state.response})
         sleep(sleep_time_list[st.session_state.talktime])
         st.session_state.return_time = str(datetime.datetime.now(pytz.timezone('Asia/Tokyo')))
         doc_ref = db.collection(str(st.session_state.user_id)).document(str(st.session_state.talktime))
         doc_ref.set({
-            "Human": st.session_state.user_input,
-            "AI": st.session_state.response,
+            "Human": st.session_state.log[-2],
+            "AI": st.session_state.log[-1],
             "Human_msg_sended": st.session_state.send_time,
             "AI_msg_returned": st.session_state.return_time,
         })
@@ -163,14 +144,6 @@ def chat_page():
         st.session_state.talktime = 0
     if not "log" in st.session_state:
         st.session_state.log = []
-    while True:
-    try:
-        stream_graph_updates(user_input)
-        st.session_state.log = stream_graph_updates(user_input)
-    except:
-        stream_graph_updates(user_input)
-        break
-    stream_graph_updates(user_input)
     # 履歴表示
     chat_placeholder = st.empty()
     with chat_placeholder.container():
@@ -180,10 +153,6 @@ def chat_page():
                 message(msg["content"], is_user=True, avatar_style="adventurer", seed="Nala", key = "user_{}".format(i))
             else:
                 message(msg["content"], is_user=False, avatar_style="micah", key = "ai_{}".format(i))
-        # print token
-        # if "input_tokens" in st.session_state:
-            # st.write("input tokens : {}※テスト用".format(st.session_state.input_tokens))
-            # st.write("output tokens : {}※テスト用".format(st.session_state.output_tokens))
     # 入力フォーム
     if st.session_state.talktime < 5: # 会話時
         # 念のため初期化
@@ -199,8 +168,8 @@ def chat_page():
                     label="送信",
                     type="primary")
             if submit_msg:
-                st.session_state.user_input = user_input
-                st.session_state.log.append({"role": "user", "content": st.session_state.user_input}
+                st.session_state.send_time = str(datetime.datetime.now(pytz.timezone('Asia/Tokyo')))
+                st.session_state.log = stream_graph_updates(user_input)
                 st.session_state.state = 3
                 st.rerun()
     elif st.session_state.talktime == 5: # 会話終了時
