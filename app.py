@@ -71,19 +71,6 @@ if "user_id" in st.session_state:
     config = {"configurable": {"thread_id": st.session_state.user_id}}
 st.session_state.memory = MemorySaver()
 
-def stream_graph_updates(user_input: str):
-    # The config is the **second positional argument** to stream() or invoke()!
-    events = graph.stream(
-        {"messages": [("user", user_input)]}, config, stream_mode="values"
-    )
-    for event in events:
-        messages = event["messages"]
-        msg_list = []
-        for value in range(len(messages)):
-            msg_list.append({"role":messages[value].type,
-                             "content":messages[value].content})
-        return msg_list
-
 # ID入力※テスト用フォーム
 def input_id():
     with st.form("id_form", enter_to_submit=False):
@@ -106,6 +93,19 @@ graph_builder.add_node("chatbot", chatbot)
 graph_builder.add_edge(START, "chatbot")
 graph_builder.add_edge("chatbot", END)
 graph = graph_builder.compile(checkpointer=st.session_state.memory)
+
+def stream_graph_updates(user_input: str):
+    # The config is the **second positional argument** to stream() or invoke()!
+    events = graph.stream(
+        {"messages": [("user", user_input)]}, config, stream_mode="values"
+    )
+    for event in events:
+        messages = event["messages"]
+        msg_list = []
+        for value in range(len(messages)):
+            msg_list.append({"role":messages[value].type,
+                             "content":messages[value].content})
+        return msg_list
 
 # Firebase 設定の読み込み
 # creds = service_account.Credentials.from_service_account_info(FIREBASE_APIKEY_DICT)
