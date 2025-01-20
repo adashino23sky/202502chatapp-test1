@@ -117,9 +117,8 @@ def submitted():
     # 待機中にも履歴を表示
     chat_placeholder = st.empty()
     with chat_placeholder.container():
+        st.markdown(st.session_state.log)
         for i in range(len(st.session_state.log)-1):
-            print(st.session_state.log)
-            print(i)
             msg = st.session_state.log[i]
             if msg["role"] == "human":
                 message(msg["content"], is_user=True, avatar_style="adventurer", seed="Nala", key = "user_{}".format(i))
