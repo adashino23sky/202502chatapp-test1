@@ -69,7 +69,8 @@ prompt = ChatPromptTemplate.from_messages(
 chain = prompt | llm
 if "user_id" in st.session_state:
     config = {"configurable": {"thread_id": st.session_state.user_id}}
-st.session_state.memory = MemorySaver()
+if not "memory" in st.session_state:
+    st.session_state.memory = MemorySaver()
 
 # ID入力※テスト用フォーム
 def input_id():
