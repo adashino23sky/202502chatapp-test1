@@ -1,2 +1,3 @@
-langchain
-langchain-openai
+!pip install langchain-openai
+!pip install langgraph
+!pip install langchain
