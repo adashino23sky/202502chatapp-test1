@@ -121,7 +121,7 @@ def submitted():
             print(st.session_state.log)
             print(i)
             msg = st.session_state.log[i]
-            if msg["role"] == "user":
+            if msg["role"] == "human":
                 message(msg["content"], is_user=True, avatar_style="adventurer", seed="Nala", key = "user_{}".format(i))
             else:
                 message(msg["content"], is_user=False, avatar_style="micah", key = "ai_{}".format(i))
@@ -151,7 +151,7 @@ def chat_page():
     with chat_placeholder.container():
         for i in range(len(st.session_state.log)):
             msg = st.session_state.log[i]
-            if msg["role"] == "user":
+            if msg["role"] == "human":
                 message(msg["content"], is_user=True, avatar_style="adventurer", seed="Nala", key = "user_{}".format(i))
             else:
                 message(msg["content"], is_user=False, avatar_style="micah", key = "ai_{}".format(i))
