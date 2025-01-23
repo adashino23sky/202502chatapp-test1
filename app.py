@@ -102,14 +102,14 @@ def stream_graph_updates(user_input: str):
         )
         st.info("イベントストリームを開始しました。")
         msg_list = []
-        for event in events:
-            st.json(event)  # デバッグ: 各イベント内容を表示
-            messages = event["messages"]
-            for value in range(len(messages)):
-                msg_list.append({
-                    "role": messages[value].type,
-                    "content": messages[value].content
-                })
+        event = events[-1]
+        st.json(event)  # デバッグ: 各イベント内容を表示
+        messages = event["messages"]
+        for value in range(len(messages)):
+            msg_list.append({
+                "role": messages[value].type,
+                "content": messages[value].content
+            })
         return msg_list
     except Exception as e:
         st.error(f"ストリーム更新中のエラー: {str(e)}")
