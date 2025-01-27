@@ -133,7 +133,7 @@ def submitted():
     with st.spinner("相手からの返信を待っています..."):
         sleep(SLEEP_TIME_LIST[st.session_state.talktime])
         st.session_state.return_time = str(datetime.datetime.now(pytz.timezone('Asia/Tokyo')))
-        st.session_state.log = stream_graph_updates(st.session_state.log[-1].content)
+        st.session_state.log = stream_graph_updates(st.session_state.log[-1]["content"])
         # doc_ref = db.collection(str(st.session_state.user_id)).document(str(st.session_state.talktime))
         # doc_ref.set({
         #     "Human": st.session_state.log[-2],
