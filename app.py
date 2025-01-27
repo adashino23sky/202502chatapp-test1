@@ -190,7 +190,7 @@ def chat_page():
             会話が規定回数に達しました。\n\n
             以下の"アンケートに戻る"をクリックして、アンケートに回答してください。\n\n
             アンケートページは別のタブで開きます。\n\n
-            <a href="{url}" target="_blank">アンケートに戻る</a>
+            <a href="{URL}" target="_blank">アンケートに戻る</a>
             """,
             unsafe_allow_html=True)
 
