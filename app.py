@@ -100,20 +100,23 @@ def stream_graph_updates(user_input: str):
         events = graph.stream(
             {"messages": [("user", user_input)]}, config, stream_mode="values"
         )
-        st.info("イベントストリームを開始しました。")
         msg_list = []
         event = events[-1]
         st.json(event)  # デバッグ: 各イベント内容を表示
         messages = event["messages"]
         for value in range(len(messages)):
-            msg_list.append({
+            msg = {
                 "role": messages[value].type,
                 "content": messages[value].content
-            })
+            }
+            # 新しいメッセージのみを追加
+            if msg not in st.session_state.log:
+                msg_list.append(msg)
         return msg_list
     except Exception as e:
         st.error(f"ストリーム更新中のエラー: {str(e)}")
         return []
+
 
 # Firebase 設定の読み込み
 # creds = service_account.Credentials.from_service_account_info(FIREBASE_APIKEY_DICT)
