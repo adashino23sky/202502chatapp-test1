@@ -118,6 +118,10 @@ def stream_graph_updates(user_input: str):
         st.error(f"Error occurred: {e}")
         return []
 
+# Firebase 設定の読み込み
+# creds = service_account.Credentials.from_service_account_info(FIREBASE_APIKEY_DICT)
+# project_id = FIREBASE_APIKEY_DICT["project_id"]
+# db = firestore.Client(credentials=creds, project=project_id)
 
 # 入力時の動作
 def submitted():
@@ -138,6 +142,17 @@ def submitted():
         user_input = st.session_state.log[-1]["content"]
         st.write(f"User input for stream_graph_updates: {user_input}")  # デバッグ
         st.session_state.log = stream_graph_updates(user_input)
+        # doc_ref = db.collection(str(st.session_state.user_id)).document(str(st.session_state.talktime))
+        # doc_ref.set({
+        #     "Human": next((msg["content"] for msg in reversed(st.session_state.log) if msg["role"] == "human"),
+        #                None  # 条件に一致するものがなかった場合のデフォルト値
+        #               ),
+        #     "AI": next((msg["content"] for msg in reversed(st.session_state.log) if msg["role"] == "ai"),
+        #                None  # 条件に一致するものがなかった場合のデフォルト値
+        #               ),
+        #     "Human_msg_sended": st.session_state.send_time,
+        #     "AI_msg_returned": st.session_state.return_time,
+        # })
         st.session_state.talktime += 1
         st.session_state.state = 2
         st.rerun()
