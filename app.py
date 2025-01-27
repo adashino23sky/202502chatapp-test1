@@ -101,6 +101,7 @@ def stream_graph_updates(user_input: str):
             {"messages": [("user", user_input)]}, config, stream_mode="values"
         )
         st.info("イベントストリームを開始しました。")
+        st.json(events)
         msg_list = []
         event = events[-1]
         st.json(event)  # デバッグ: 各イベント内容を表示
