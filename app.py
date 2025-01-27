@@ -73,15 +73,19 @@ if not "memory" in st.session_state:
 
 # ID入力※テスト用フォーム
 def input_id():
+    st.write("Entering input_id() function")  # デバッグ
     with st.form("id_form", enter_to_submit=False):
         user_id = st.text_input('会話IDを入力し、送信ボタンを押してください')
         submit_id = st.form_submit_button(
             label="送信",
             type="primary")
     if submit_id:
+        st.write(f"ID form submitted with user_id: {user_id}")  # デバッグ
         st.session_state.user_id = str(user_id)
         st.session_state.state = 2
         st.rerun()
+    else:
+        st.write("ID form not submitted yet")  # デバッグ
 
 def chatbot(state: State):
     return {"messages": [chain.invoke({"history":state["messages"]})]}
@@ -113,61 +117,57 @@ def stream_graph_updates(user_input: str):
     except Exception as e:
         st.error(f"Error occurred: {e}")
 
-# Firebase 設定の読み込み
-# creds = service_account.Credentials.from_service_account_info(FIREBASE_APIKEY_DICT)
-# project_id = FIREBASE_APIKEY_DICT["project_id"]
-# db = firestore.Client(credentials=creds, project=project_id)
-
 # 入力時の動作
 def submitted():
-    # 待機中にも履歴を表示
+    st.write("Entering submitted() function")  # デバッグ
+    st.write(f"Current state: {st.session_state.state}")  # デバッグ
     chat_placeholder = st.empty()
     with chat_placeholder.container():
-        st.markdown(st.session_state.log)
+        st.write(f"Log before displaying: {st.session_state.log}")  # デバッグ
         for i in range(len(st.session_state.log)):
             msg = st.session_state.log[i]
             if msg["role"] == "human":
-                message(msg["content"], is_user=True, avatar_style="adventurer", seed="Nala", key = "user_{}".format(i))
+                message(msg["content"], is_user=True, avatar_style="adventurer", seed="Nala", key=f"user_{i}")
             else:
-                message(msg["content"], is_user=False, avatar_style="micah", key = "ai_{}".format(i))
+                message(msg["content"], is_user=False, avatar_style="micah", key=f"ai_{i}")
     with st.spinner("相手からの返信を待っています..."):
         sleep(SLEEP_TIME_LIST[st.session_state.talktime])
         st.session_state.return_time = str(datetime.datetime.now(pytz.timezone('Asia/Tokyo')))
         user_input = st.session_state.log[-1]["content"]
-        st.write(user_input)
-        st.session_state.log = stream_graph_updates(user_input)
-        # doc_ref = db.collection(str(st.session_state.user_id)).document(str(st.session_state.talktime))
-        # doc_ref.set({
-        #     "Human": st.session_state.log[-2],
-        #     "AI": st.session_state.log[-1],
-        #     "Human_msg_sended": st.session_state.send_time,
-        #     "AI_msg_returned": st.session_state.return_time,
-        # })
+        st.write(f"User input for stream_graph_updates: {user_input}")  # デバッグ
+        new_messages = stream_graph_updates(user_input)
+        st.write(f"New messages from stream_graph_updates: {new_messages}")  # デバッグ
+        if new_messages:
+            st.session_state.log.extend(new_messages)
+        else:
+            st.write("No new messages received")  # デバッグ
         st.session_state.talktime += 1
         st.session_state.state = 2
         st.rerun()
 
 # チャット画面
 def chat_page():
-    # 会話回数とログ初期化
-    if not "talktime" in st.session_state:
+    st.write("Entering chat_page() function")  # デバッグ
+    if "talktime" not in st.session_state:
         st.session_state.talktime = 0
-    if not "log" in st.session_state:
+        st.write("talktime initialized to 0")  # デバッグ
+    if "log" not in st.session_state:
         st.session_state.log = []
-    # 履歴表示
+        st.write("log initialized to empty list")  # デバッグ
+    st.write(f"Current log: {st.session_state.log}")  # デバッグ
+    st.write(f"Current talktime: {st.session_state.talktime}")  # デバッグ
     chat_placeholder = st.empty()
     with chat_placeholder.container():
         for i in range(len(st.session_state.log)):
             msg = st.session_state.log[i]
             if msg["role"] == "human":
-                message(msg["content"], is_user=True, avatar_style="adventurer", seed="Nala", key = "user_{}".format(i))
+                message(msg["content"], is_user=True, avatar_style="adventurer", seed="Nala", key=f"user_{i}")
             else:
-                message(msg["content"], is_user=False, avatar_style="micah", key = "ai_{}".format(i))
-    # 入力フォーム
-    if st.session_state.talktime < 5: # 会話時
-        # 念のため初期化
+                message(msg["content"], is_user=False, avatar_style="micah", key=f"ai_{i}")
+    if st.session_state.talktime < 5:  # 会話時
         if not "user_input" in st.session_state:
             st.session_state.user_input = "hogehoge"
+            st.write("user_input initialized to 'hogehoge'")  # デバッグ
         with st.container():
             with st.form("chat_form", clear_on_submit=True, enter_to_submit=False):
                 if st.session_state.talktime == 0:
@@ -178,11 +178,15 @@ def chat_page():
                     label="送信",
                     type="primary")
             if submit_msg:
+                st.write(f"Form submitted with user_input: {user_input}")  # デバッグ
                 st.session_state.send_time = str(datetime.datetime.now(pytz.timezone('Asia/Tokyo')))
                 st.session_state.log.append({"role": "human", "content": user_input})
+                st.write(f"Updated log after appending: {st.session_state.log}")  # デバッグ
                 st.session_state.state = 3
                 st.rerun()
-    elif st.session_state.talktime == 5: # 会話終了時
+            else:
+                st.write("Chat form not submitted yet")  # デバッグ
+    elif st.session_state.talktime == 5:  # 会話終了時
         st.markdown(
             f"""
             5回会話したので終了します。\n\n
@@ -223,8 +227,11 @@ def main():
                 </style>
                 """
     st.markdown(hide_streamlit_style, unsafe_allow_html=True) 
-    if not "state" in st.session_state:
+    st.write("Entering main() function")  # デバッグ
+    if "state" not in st.session_state:
         st.session_state.state = 1
+        st.write("State initialized to 1")  # デバッグ
+    st.write(f"Current state: {st.session_state.state}")  # デバッグ
     if st.session_state.state == 1:
         input_id()
     elif st.session_state.state == 2:
