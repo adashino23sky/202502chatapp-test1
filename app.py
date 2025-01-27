@@ -45,9 +45,8 @@ FPATH = "prompt.txt" # recommend hidden
 with open(file = FPATH, encoding = "utf-8") as f:
     SYSTEM_PROMPT = f.read()
 SLEEP_TIME_LIST = [5, 5, 5, 5, 5, 5, 5, 5] # 各対話ターンの待機時間
-DISPLAY_TEXT_LIST = [
-'「原子力発電を廃止すべきか否か」という意見に対して、あなたの意見を入力し、送信ボタンを押してください。', 
-'あなたの意見を入力し、送信ボタンを押してください。'] # 対話ターンの表示テキスト
+DISPLAY_TEXT_LIST = ['なにか発言してみてね', 
+                     '続けて発言してね'] # 対話ターンの表示テキスト
 URL = "https://www.nagoya-u.ac.jp/"
 # FIREBASE_APIKEY_DICT = json.loads(st.secrets["firebase"]["textkey"])
 
@@ -75,7 +74,7 @@ if not "memory" in st.session_state:
 # ID入力※テスト用フォーム
 def input_id():
     with st.form("id_form", enter_to_submit=False):
-        user_id = st.text_input('学籍番号を入力し、送信ボタンを押してください')
+        user_id = st.text_input('会話IDを入力し、送信ボタンを押してください')
         submit_id = st.form_submit_button(
             label="送信",
             type="primary")
@@ -101,17 +100,15 @@ def stream_graph_updates(user_input: str):
             {"messages": [("user", user_input)]}, config, stream_mode="values"
         )
         st.info("イベントストリームを開始しました。")
-        for event in events:
-            st.json(event)  # デバッグ: 各イベント内容を表示
-            messages = event["messages"]
-            msg_list = []
-            for value in range(len(messages)):
-                msg_list.append({
-                    "role": messages[value].type,
-                    "content": messages[value].content
-                })
-        if msg_list == []:
-            msg_list = [{"role":"error in stream", "content":f"ストリーム更新中のエラー: {str(e)}"}]
+        event = events[-1]
+        st.json(event)  # デバッグ: 各イベント内容を表示
+        messages = event["messages"]
+        msg_list = []
+        for value in range(len(messages)):
+            msg_list.append({
+                "role": messages[value].type,
+                "content": messages[value].content
+            })
         return msg_list
     except Exception as e:
         st.error(f"Error occurred: {e}")
@@ -180,16 +177,12 @@ def chat_page():
             if submit_msg:
                 st.session_state.send_time = str(datetime.datetime.now(pytz.timezone('Asia/Tokyo')))
                 st.session_state.log = stream_graph_updates(user_input)
-                st.write("User Input:", user_input)  # 入力データを確認
-                st.write("Config:", config)          # Config内容を確認
                 st.session_state.state = 3
                 st.rerun()
     elif st.session_state.talktime == 5: # 会話終了時
         st.markdown(
             f"""
-            会話が規定回数に達しました。\n\n
-            以下の"アンケートに戻る"をクリックして、アンケートに回答してください。\n\n
-            アンケートページは別のタブで開きます。\n\n
+            5回会話したので終了します。\n\n
             <a href="{URL}" target="_blank">アンケートに戻る</a>
             """,
             unsafe_allow_html=True)
