@@ -124,7 +124,7 @@ def submitted():
     chat_placeholder = st.empty()
     with chat_placeholder.container():
         st.markdown(st.session_state.log)
-        for i in range(len(st.session_state.log)-1):
+        for i in range(len(st.session_state.log)):
             msg = st.session_state.log[i]
             if msg["role"] == "human":
                 message(msg["content"], is_user=True, avatar_style="adventurer", seed="Nala", key = "user_{}".format(i))
@@ -133,6 +133,7 @@ def submitted():
     with st.spinner("相手からの返信を待っています..."):
         sleep(SLEEP_TIME_LIST[st.session_state.talktime])
         st.session_state.return_time = str(datetime.datetime.now(pytz.timezone('Asia/Tokyo')))
+        st.session_state.log = stream_graph_updates(st.session_state.log[-1])
         # doc_ref = db.collection(str(st.session_state.user_id)).document(str(st.session_state.talktime))
         # doc_ref.set({
         #     "Human": st.session_state.log[-2],
@@ -176,7 +177,7 @@ def chat_page():
                     type="primary")
             if submit_msg:
                 st.session_state.send_time = str(datetime.datetime.now(pytz.timezone('Asia/Tokyo')))
-                st.session_state.log = stream_graph_updates(user_input)
+                st.session_state.log.append(user_input)
                 st.session_state.state = 3
                 st.rerun()
     elif st.session_state.talktime == 5: # 会話終了時
