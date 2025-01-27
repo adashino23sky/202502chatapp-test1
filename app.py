@@ -113,6 +113,8 @@ def stream_graph_updates(user_input: str):
         if msg_list == []:
             msg_list = [{"role":"error in stream", "content":f"ストリーム更新中のエラー: {str(e)}"}]
         return msg_list
+    except Exception as e:
+        st.error(f"Error occurred: {e}")
 
 # Firebase 設定の読み込み
 # creds = service_account.Credentials.from_service_account_info(FIREBASE_APIKEY_DICT)
