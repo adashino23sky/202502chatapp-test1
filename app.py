@@ -202,7 +202,7 @@ def chat_page():
         st.markdown(
             f"""
             5回会話したので終了します。\n\n
-            <a href="{URL}" target="_blank">アンケートに戻る</a>
+            <a href="{URL}" target="_blank">終了ページ</a>
             """,
             unsafe_allow_html=True)
 
