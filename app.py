@@ -101,23 +101,18 @@ def stream_graph_updates(user_input: str):
             {"messages": [("user", user_input)]}, config, stream_mode="values"
         )
         st.info("イベントストリームを開始しました。")
-        st.json(events)
-        event = events[-1]
-        st.json(event)  # デバッグ: 各イベント内容を表示
-        messages = event["messages"]
-        msg_list = []
-        for value in range(len(messages)):
-            msg_list.append({
-                "role": messages[value].type,
-                "content": messages[value].content
-            })
+        for event in events:
+            st.json(event)  # デバッグ: 各イベント内容を表示
+            messages = event["messages"]
+            msg_list = []
+            for value in range(len(messages)):
+                msg_list.append({
+                    "role": messages[value].type,
+                    "content": messages[value].content
+                })
         if msg_list == []:
-            msg_list = "None"
+            msg_list = [{"role":"error in stream", "content":f"ストリーム更新中のエラー: {str(e)}"}]
         return msg_list
-    except Exception as e:
-        st.error(f"ストリーム更新中のエラー: {str(e)}")
-        return []
-
 
 # Firebase 設定の読み込み
 # creds = service_account.Credentials.from_service_account_info(FIREBASE_APIKEY_DICT)
