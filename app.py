@@ -177,7 +177,7 @@ def chat_page():
                     type="primary")
             if submit_msg:
                 st.session_state.send_time = str(datetime.datetime.now(pytz.timezone('Asia/Tokyo')))
-                st.session_state.log.append({"role": "human", "content": user_input)
+                st.session_state.log.append({"role": "human", "content": user_input})
                 st.session_state.state = 3
                 st.rerun()
     elif st.session_state.talktime == 5: # 会話終了時
