@@ -100,15 +100,16 @@ graph = graph_builder.compile(checkpointer=st.session_state.memory)
 
 def stream_graph_updates(user_input: str):
     try:
-        msg_list = []
+        events = graph.stream({"messages": [("user", user_input)]}, config, stream_mode="values")
         st.info("イベントストリームを開始しました。")
-        for event in graph.stream({"messages": [("user", user_input)]}, config, stream_mode="values"):
+        for event in events:
             st.json(event)  # デバッグ: 各イベント内容を表示
             messages = event["messages"]
-            for message in messages:
+            msg_list = []
+            for value in range(len(messages)):
                 msg_list.append({
-                    "role": message.type,
-                    "content": message.content
+                    "role": messages[value].type,
+                    "content": messages[value].content
                 })
         if not msg_list:
             st.write("No messages collected from events.")  # デバッグ
