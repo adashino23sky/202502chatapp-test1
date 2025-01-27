@@ -102,15 +102,17 @@ def stream_graph_updates(user_input: str):
         )
         st.info("イベントストリームを開始しました。")
         st.json(events)
-        msg_list = []
         event = events[-1]
         st.json(event)  # デバッグ: 各イベント内容を表示
         messages = event["messages"]
+        msg_list = []
         for value in range(len(messages)):
             msg_list.append({
                 "role": messages[value].type,
                 "content": messages[value].content
             })
+        if msg_list == []:
+            msg_list = "None"
         return msg_list
     except Exception as e:
         st.error(f"ストリーム更新中のエラー: {str(e)}")
@@ -181,6 +183,8 @@ def chat_page():
             if submit_msg:
                 st.session_state.send_time = str(datetime.datetime.now(pytz.timezone('Asia/Tokyo')))
                 st.session_state.log = stream_graph_updates(user_input)
+                st.write("User Input:", user_input)  # 入力データを確認
+                st.write("Config:", config)          # Config内容を確認
                 st.session_state.state = 3
                 st.rerun()
     elif st.session_state.talktime == 5: # 会話終了時
