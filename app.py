@@ -139,7 +139,9 @@ def submitted():
     with st.spinner("相手からの返信を待っています..."):
         sleep(SLEEP_TIME_LIST[st.session_state.talktime])
         st.session_state.return_time = str(datetime.datetime.now(pytz.timezone('Asia/Tokyo')))
-        user_input = st.session_state.log[-1]["content"]
+        user_input = next((msg["content"] for msg in reversed(st.session_state.log) if msg["role"] == "human"),
+                          None  # 条件に一致するものがなかった場合のデフォルト値
+                         )
         st.write(f"User input for stream_graph_updates: {user_input}")  # デバッグ
         st.session_state.log = stream_graph_updates(user_input)
         # doc_ref = db.collection(str(st.session_state.user_id)).document(str(st.session_state.talktime))
