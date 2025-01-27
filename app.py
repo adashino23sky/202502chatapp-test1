@@ -100,18 +100,16 @@ def stream_graph_updates(user_input: str):
         events = graph.stream(
             {"messages": [("user", user_input)]}, config, stream_mode="values"
         )
+        st.info("イベントストリームを開始しました。")
         msg_list = []
         event = events[-1]
         st.json(event)  # デバッグ: 各イベント内容を表示
         messages = event["messages"]
         for value in range(len(messages)):
-            msg = {
+            msg_list.append({
                 "role": messages[value].type,
                 "content": messages[value].content
-            }
-            # 新しいメッセージのみを追加
-            if msg not in st.session_state.log:
-                msg_list.append(msg)
+            })
         return msg_list
     except Exception as e:
         st.error(f"ストリーム更新中のエラー: {str(e)}")
