@@ -137,13 +137,7 @@ def submitted():
         st.session_state.return_time = str(datetime.datetime.now(pytz.timezone('Asia/Tokyo')))
         user_input = st.session_state.log[-1]["content"]
         st.write(f"User input for stream_graph_updates: {user_input}")  # デバッグ
-        new_messages = stream_graph_updates(user_input)
-        st.write(f"New messages from stream_graph_updates: {new_messages}")  # デバッグ
-        if new_messages:
-            st.session_state.log.extend(new_messages)
-        else:
-            st.write("No new messages received")  # デバッグ
-        sleep(5)
+        st.session_state.log = stream_graph_updates(user_input)
         st.session_state.talktime += 1
         st.session_state.state = 2
         st.rerun()
