@@ -141,6 +141,7 @@ def submitted():
             st.session_state.log.extend(new_messages)
         else:
             st.write("No new messages received")  # デバッグ
+        sleep(5)
         st.session_state.talktime += 1
         st.session_state.state = 2
         st.rerun()
