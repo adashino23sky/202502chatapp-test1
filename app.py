@@ -48,9 +48,10 @@ SLEEP_TIME_LIST = [5, 5, 5, 5, 5] # 各対話ターンの待機時間
 DISPLAY_TEXT_LIST = ['「原子力発電を廃止すべきか否か」という意見に対して、あなたの意見を入力し、送信ボタンを押してください。',
                      'あなたの意見を入力し、送信ボタンを押してください。']
 QUALTRICS_URL = "https://nagoyapsychology.qualtrics.com/jfe/form/SV_0SNLEKPKyygfths/"
-# FIREBASE_APIKEY_DICT = json.loads(st.secrets["firebase"]["textkey"])
+FIREBASE_APIKEY_DICT = json.loads(st.secrets["firebase"]["textkey"])
 if not "user_id" in st.session_state:
     st.session_state.user_id = st.query_params["sessionid"]
+OPENAI_API_KEY=st.secrets.openai_api_key
 
 class State(TypedDict):
     # Messages have the type "list". The `add_messages` function
