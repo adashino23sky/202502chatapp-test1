@@ -41,7 +41,7 @@ import json
 OPENAI_API_KEY=st.secrets.openai_api_key
 MODEL_NAME="gpt-4-1106-preview"
 ## chat act config
-FPATH = "preprompt_affirmative_individualizing_nuclear.txt"
+FPATH = "preprompt_negative_binding_nuclear.txt"
 with open(file = FPATH, encoding = "utf-8") as f:
     SYSTEM_PROMPT = f.read()
 SLEEP_TIME_LIST = [5, 5, 5, 5, 5] # 各対話ターンの待機時間
@@ -125,7 +125,7 @@ def submitted():
         st.session_state.log = stream_graph_updates(user_input)
         doc_ref = db.collection(str(st.session_state.user_id)).document(str(st.session_state.talktime))
         doc_ref.set({
-            "bottype" : "indi",
+            "bottype" : "bind",
             "Human": next((msg["content"] for msg in reversed(st.session_state.log) if msg["role"] == "human"),
                        None  # 条件に一致するものがなかった場合のデフォルト値
                       ),
